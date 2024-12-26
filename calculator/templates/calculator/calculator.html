@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <script>
+        // Function to get the CSRF token from the page
+        function getCsrfToken() {
+            var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            return csrfToken;
+        }
+
+        // Function to send the calculation request to the server
+        function calculate() {
+            var expression = document.getElementById('expression').value;
+            fetch('/calculate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify({ expression: expression })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result) {
+                    // Display the result if successful
+                    document.getElementById('result').innerText = "Result: " + data.result;
+                } else if (data.error) {
+                    // Display error message if there was an issue
+                    document.getElementById('result').innerText = "Error: " + data.error;
+                }
+            })
+            .catch(error => {
+                // Handle any other errors (network issues, etc.)
+                document.getElementById('result').innerText = "Error: " + error.message;
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Calculator</h1>
+
+    <!-- Calculator form with CSRF token -->
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" id="expression" placeholder="Enter expression" />
+        <button type="button" onclick="calculate()">Calculate</button>
+    </form>
+    
+    <!-- Display result -->
+    <p id="result"></p>
+</body>
+</html>
